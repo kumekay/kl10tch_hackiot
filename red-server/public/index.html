@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Kettl</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/jumbotron-narrow.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header">
+        <!-- <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" class="active"><a href="#">Home</a></li>
+            <li role="presentation"><a href="#">About</a></li>
+            <li role="presentation"><a href="#">Contact</a></li>
+          </ul> -->
+        </nav>
+        <h3 class="text-muted">Kettl — WiFi kettle</h3>
+      </div>
+
+      <div class="jumbotron">
+        <h1><span id="temperature">25</span> C</h1>
+        <p class="lead" id="isheating"></p>
+        <p><a class="btn btn-lg btn-success" href="#" role="button" id="maketea">Make tea!</a></p>
+      </div>
+
+      <footer class="footer">
+        <p>&copy; HackIOT 2015</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    <script type="text/javascript">
+        var wasHeating = false;
+        function update() {
+            $.getJSON("/api/status", function (data) {
+                var temp = data.temp || 25;
+                $("#temperature").html("" + Math.round(temp));
+
+                var heating = data.heating || false;
+                if (heating) {
+                    $("#isheating").html("Heating");
+                }
+                else {
+                    $("#isheating").html("Not heating");
+                }
+
+                if (!wasHeating && heating) {
+                    wasHeating = true;
+                    $("#maketea").removeClass("btn-success").addClass("btn-danger").html("Stop");
+                }
+                else if (wasHeating && !heating) {
+                    wasHeating = false;
+                    $("#maketea").removeClass("btn-danger").addClass("btn-success").html("Make tea!");
+                }
+            });
+        }
+
+        function makeTea() {
+            if (wasHeating) {
+                $.post("/api/stop");
+            }
+            else {
+                $.post("/api/heat", {temp: 100});
+            }
+        }
+
+        $(function() {
+            update();
+            setInterval(update, 3000);
+            $("#maketea").click(makeTea);
+        });
+
+
+    </script>
+    
+  </body>
+</html>
